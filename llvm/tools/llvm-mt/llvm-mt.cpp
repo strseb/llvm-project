@@ -110,7 +110,12 @@ int llvm_mt_main(int Argc, char **Argv, const llvm::ToolContext &) {
     return 0;
   }
 
-  std::vector<std::string> InputFiles = InputArgs.getAllArgValues(OPT_manifest);
+  std::vector<std::string> InputFiles = {};
+  for (llvm::opt::Arg *A : InputArgs.filtered(OPT_manifest)) {
+    for (const auto *const Val : A->getValues()) {
+      InputFiles.push_back(Val);
+    }
+  }
 
   if (InputFiles.size() == 0) {
     reportError("no input file specified");
