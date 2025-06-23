@@ -1,7 +1,7 @@
 include "llvm/Option/OptParser.td"
 
 def unsupported : OptionGroup<"unsupported">;
-def manifest : MultiArg<["/", "-"], "manifest", 2>,  HelpText<"Used to specify each manifest that need to be processed">, MetaVarName<"manifest">;
+def manifest : Separate<["/", "-"], "manifest">,  HelpText<"Used to specify each manifest that need to be processed">, MetaVarName<"manifest">;
 def identity : Joined<["/", "-"], "identity:">, HelpText<"Not supported">, MetaVarName<"identity">, Group<unsupported>;
 def rgs : Joined<["/", "-"], "rgs:">, HelpText<"Not supported">, MetaVarName<"script">, Group<unsupported>;
 def tlb : Joined<["/", "-"], "tlb:">, HelpText<"Not supported">, MetaVarName<"file">, Group<unsupported>;

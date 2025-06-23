@@ -85,7 +85,30 @@ int llvm_mt_main(int Argc, char **Argv, const llvm::ToolContext &) {
   ArrayRef<const char *> ArgsArr = ArrayRef(Argv + 1, Argc - 1);
   opt::InputArgList InputArgs = T.ParseArgs(ArgsArr, MAI, MAC);
 
+  std::vector<std::string> InputFiles;
+
+  for (auto ArgIt = InputArgs.begin(), ArgEnd = InputArgs.end(); ArgIt != ArgEnd; ++ArgIt) {
+    const auto *Arg = *ArgIt;
+    if (Arg->getOption().matches(OPT_manifest)) {
+      Arg->claim();
+      InputFiles.push_back(Arg->getValue());
+  
+      auto NextArgIt = std::next(ArgIt);
+      while (NextArgIt != ArgEnd && (*NextArgIt)->getOption().matches(OPT_INPUT)) {
+        const auto *NextArg = *NextArgIt;
+        NextArg->claim();
+        InputFiles.push_back(NextArg->getValue());
+        ++ArgIt;
+        ++NextArgIt;
+      }
+    }
+  }
+  
+
   for (auto *Arg : InputArgs.filtered(OPT_INPUT)) {
+    if(Arg->isClaimed()){
+      continue;
+    }
     auto ArgString = Arg->getAsString(InputArgs);
     std::string Diag;
     raw_string_ostream OS(Diag);
@@ -109,15 +132,7 @@ int llvm_mt_main(int Argc, char **Argv, const llvm::ToolContext &) {
     T.printHelp(outs(), "llvm-mt [options] file...", "Manifest Tool", false);
     return 0;
   }
-
-  std::vector<std::string> InputFiles = {};
-  for (llvm::opt::Arg *A : InputArgs.filtered(OPT_manifest)) {
-    for (const auto *const Val : A->getValues()) {
-      InputFiles.push_back(Val);
-    }
-  }
-
-  if (InputFiles.size() == 0) {
+  if(InputFiles.size() == 0){
     reportError("no input file specified");
   }
 
